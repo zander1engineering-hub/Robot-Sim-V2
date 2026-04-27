@@ -134,7 +134,8 @@ max-width:260px;font-size:12px;
 <div id="hud">
 Iron: <span id="iron">0</span><br>
 Steel: <span id="steel">0</span><br>
-Power: <span id="power">0</span>
+Power: <span id="power">0</span><br>
+Things: <span id="things">0</span>
 </div>
 
 <!-- TECH TREE -->
@@ -165,7 +166,7 @@ c.width=innerWidth;c.height=innerHeight;
 // ================= STATE =================
 let running=false;
 let mode='miner';
-let items=[],buildings=[],enemies=[];
+let items=[],buildings=[],enemies=[],things=[];
 let iron=0,steel=0,power=100;
 let tech={belt:false,smelt:false,insert:false,win:false};
 let step=0;
@@ -175,6 +176,34 @@ class Item{
 constructor(x,y,type='iron'){this.x=x;this.y=y;this.type=type;this.vx=0;}
 update(){this.x+=this.vx;}
 draw(){ctx.fillStyle=this.type==='iron'?'#fbbf24':'#94a3b8';ctx.fillRect(this.x,this.y,4,4);}
+}
+
+
+class Thing{
+constructor(){
+this.x=Math.random()*c.width;
+this.y=Math.random()*c.height;
+this.size=1+Math.random()*2.5;
+this.vx=(Math.random()-0.5)*0.25;
+this.vy=(Math.random()-0.5)*0.25;
+this.color=`hsla(${180+Math.random()*120},90%,70%,0.75)`;
+}
+update(){
+this.x+=this.vx;
+this.y+=this.vy;
+if(this.x<0)this.x=c.width;
+if(this.x>c.width)this.x=0;
+if(this.y<0)this.y=c.height;
+if(this.y>c.height)this.y=0;
+}
+draw(){
+ctx.fillStyle=this.color;
+ctx.fillRect(this.x,this.y,this.size,this.size);
+}
+}
+
+function addMoreThings(amount=1200){
+for(let i=0;i<amount;i++)things.push(new Thing());
 }
 
 // ================= BUILDINGS =================
@@ -226,7 +255,7 @@ if(mode==='inserter'&&tech.insert)buildings.push(new Inserter(x,y));
 function saveGame(s){localStorage.setItem('save'+s,JSON.stringify({buildings,items}));}
 
 // ================= UI =================
-function start(){document.getElementById('menu').style.display='none';running=true;loop();}
+function start(){document.getElementById('menu').style.display='none';if(!things.length)addMoreThings(1200);running=true;loop();}
 function openTutorial(){document.getElementById('tip').innerText='Follow steps: Mine → Belt → Smelt → Automate';}
 function resume(){document.getElementById('pause').style.display='none';running=true;}
 
@@ -236,9 +265,9 @@ ctx.fillStyle="#050816";ctx.fillRect(0,0,c.width,c.height);
 
 if(Math.random()<0.01)enemies.push(new Enemy());
 
-buildings.forEach(b=>b.update&&b.update());items.forEach(i=>i.update&&i.update());
+buildings.forEach(b=>b.update&&b.update());items.forEach(i=>i.update&&i.update());things.forEach(t=>t.update());
 
-buildings.forEach(b=>b.draw&&b.draw());items.forEach(i=>i.draw());enemies.forEach(e=>e.draw());
+things.forEach(t=>t.draw());buildings.forEach(b=>b.draw&&b.draw());items.forEach(i=>i.draw());enemies.forEach(e=>e.draw());
 
 iron=items.filter(i=>i.type==='iron').length;
 steel=items.filter(i=>i.type==='steel').length;
@@ -249,6 +278,7 @@ if(steel>20&&tech.win){alert('ROCKET LAUNCHED! YOU WIN');running=false;}
 document.getElementById('iron').innerText=iron;
 document.getElementById('steel').innerText=steel;
 document.getElementById('power').innerText=Math.floor(power);
+document.getElementById('things').innerText=things.length;
 }
 </script>
 
